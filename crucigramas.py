@@ -49,3 +49,31 @@ class Crucigrama(csps.ProblemaCSP):
                     dominio.add((fila, col))
 
             self.D[f"V{i}"] = dominio
+
+        # Vecinos
+        self.N = {}
+
+        for x in self.X:
+            self.N[x] = self.X.difference({x})
+
+    def obtener_celdas(self, var, valor):
+
+        fila, col = valor
+
+        if var[0] == "H":
+
+            palabra = self.horizontales[int(var[1:])]
+
+            return [
+                (fila, col + i, palabra[i])
+                for i in range(len(palabra))
+            ]
+
+        else:
+
+            palabra = self.verticales[int(var[1:])]
+
+            return [
+                (fila + i, col, palabra[i])
+                for i in range(len(palabra))
+            ]
