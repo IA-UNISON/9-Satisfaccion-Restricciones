@@ -157,3 +157,23 @@ def prueba_crucigrama(verticales, horizontales, consistencia=1):
     print("\nBacktrackings:", problema.backtracking)
     print("Tiempo:", round(tiempo, 4), "segundos")
 
+
+if __name__ == "__main__":
+
+    verticales = [
+        "SOL",
+        "LUNA",
+        "CASA"
+    ]
+
+    horizontales = [
+        "SILLA",
+        "LAGO",
+        "MESA"
+    ]
+
+    prueba_crucigrama(
+        verticales,
+        horizontales,
+        consistencia=2
+    )
