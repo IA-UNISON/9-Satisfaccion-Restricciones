@@ -77,3 +77,20 @@ class Crucigrama(csps.ProblemaCSP):
                 (fila + i, col, palabra[i])
                 for i in range(len(palabra))
             ]
+
+    def restriccion_binaria(self, xi, vi, xj, vj):
+
+        celdas_i = self.obtener_celdas(xi, vi)
+        celdas_j = self.obtener_celdas(xj, vj)
+
+        for fi, ci, li in celdas_i:
+            for fj, cj, lj in celdas_j:
+
+                # Misma celda
+                if fi == fj and ci == cj:
+
+                    # Letras distintas -> conflicto
+                    if li != lj:
+                        return False
+
+        return True
