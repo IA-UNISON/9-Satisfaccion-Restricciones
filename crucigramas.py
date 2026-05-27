@@ -6,24 +6,38 @@ import os
 
 class Crucigrama(csps.ProblemaCSP):
     def __init__(self, pos_ini):
-        # pos_ini es una tupla (n, m) que define el tamaño de la retícula
-        n, m = pos_ini
+        # pos_ini puede ser (n, m) o (n, m, archivo_v, archivo_h)
+        if len(pos_ini) == 4:
+            n, m, archivo_v, archivo_h = pos_ini
+        else:
+            n, m = pos_ini
+            archivo_v = 'verticales.txt'
+            archivo_h = 'horizontales.txt'
+            
         self.n = n
         self.m = m
         
         dir_path = os.path.dirname(os.path.abspath(__file__))
         
-        try:
-            with open(os.path.join(dir_path, 'horizontales.txt'), 'r', encoding='utf-8') as f:
-                horizontales = [line.strip() for line in f if line.strip()]
-        except FileNotFoundError:
-            horizontales = []
-            
-        try:
-            with open(os.path.join(dir_path, 'verticales.txt'), 'r', encoding='utf-8') as f:
-                verticales = [line.strip() for line in f if line.strip()]
-        except FileNotFoundError:
-            verticales = []
+        # Cargar horizontales
+        horizontales = []
+        for path in [archivo_h, os.path.join(dir_path, archivo_h)]:
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    horizontales = [line.strip() for line in f if line.strip()]
+                break
+            except (FileNotFoundError, OSError):
+                continue
+                
+        # Cargar verticales
+        verticales = []
+        for path in [archivo_v, os.path.join(dir_path, archivo_v)]:
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    verticales = [line.strip() for line in f if line.strip()]
+                break
+            except (FileNotFoundError, OSError):
+                continue
             
         # Variables (X): tuplas (palabra, direccion)
         self.X = set()
@@ -157,11 +171,72 @@ def esta_conectado(asignacion):
     # Si visitamos todas las variables de la asignación, está conectado
     return len(visitados) == n_vars
     
-def prueba_crucigrama(verticales, horizontales, consistencia=1):
+def prueba_crucigrama(verticales, horizontales, consistencia=1, n=15, m=15, max_intentos=100):
+    import random
     
-    # TODO: Probar el CSP del crucigrama con el grafo de restricciones con consistencia dada y medir el tiempo que tarda en resolverlo. Imprimir la asignación resultante, el número de backtrackings realizados y el tiempo que tardó en resolverlo.
+    # 1. Instanciar el problema
+    problema = Crucigrama((n, m, verticales, horizontales))
     
-    raise NotImplementedError("Completa la función prueba_crucigrama para probar tu implementación del CSP del crucigrama")
+    # Comprobar si hay variables a colocar
+    if not problema.X:
+        print("No hay palabras para generar el crucigrama.")
+        return None
+        
+    # Guardar el ordena_valores original de csps
+    original_ordena_valores = csps.ordena_valores
+    
+    # Definir el wrapper para barajar los dominios (domain shuffling)
+    def ordena_valores_shuffled(csp, asg, x_i):
+        def conflictos(v_i):
+            return sum(
+                csp.restriccion_binaria(x_i, v_i, x_j, v_j)
+                for x_j in csp.N[x_i] if x_j not in asg
+                for v_j in csp.D[x_j]
+            )
+        valores = list(csp.D[x_i])
+        random.shuffle(valores)
+        return sorted(valores, key=conflictos, reverse=True)
+        
+    # Reemplazar la función en csps por nuestra versión aleatorizada
+    csps.ordena_valores = ordena_valores_shuffled
+    
+    t0 = time.time()
+    asignacion = None
+    intentos = 0
+    
+    # Guardar los dominios originales para poder restaurarlos en cada intento
+    original_D = {var: set(dom) for var, dom in problema.D.items()}
+    
+    while intentos < max_intentos:
+        intentos += 1
+        
+        # Restaurar dominios iniciales
+        problema.D = {var: set(dom) for var, dom in original_D.items()}
+        
+        # Ejecutar la búsqueda CSP
+        asignacion = csps.asignacion_completa(problema, consistencia=consistencia, verbose=False)
+        
+        if asignacion is None:
+            # Si el resolvedor determina que no hay solución matemática alguna, no sirve de nada reintentar
+            print(f"No hay solución posible en una retícula de {n}x{m} con consistencia {consistencia}.")
+            csps.ordena_valores = original_ordena_valores
+            return None
+            
+        # Comprobar si la solución está completamente conectada
+        if esta_conectado(asignacion):
+            t_lapso = time.time() - t0
+            print(f"\n¡Solución conectada encontrada en el intento {intentos}!")
+            print(f"Tiempo: {t_lapso:.4f} segundos")
+            print(f"Backtrackings en el intento exitoso: {problema.backtracking}")
+            
+            # Restaurar ordena_valores al original antes de salir
+            csps.ordena_valores = original_ordena_valores
+            return asignacion
+            
+    print(f"\nSe alcanzó el límite de {max_intentos} intentos sin encontrar una solución conectada.")
+    # Restaurar ordena_valores al original antes de salir
+    csps.ordena_valores = original_ordena_valores
+    return None
 
 if __name__ == "__main__":
     
