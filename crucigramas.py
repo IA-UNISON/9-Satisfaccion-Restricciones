@@ -50,8 +50,55 @@ class Crucigrama(csps.ProblemaCSP):
         self.N = {x: self.X.difference({x}) for x in self.X}
 
     def restriccion_binaria(self, xi, vi, xj, vj):
-        # TODO: definir la función de restricción binaria entre las variables xi y xj
-        pass
+        w_i, dir_i = xi
+        w_j, dir_j = xj
+        r_i, c_i = vi
+        r_j, c_j = vj
+        L_i = len(w_i)
+        L_j = len(w_j)
+        
+        # Caso A: Misma dirección
+        if dir_i == dir_j:
+            if dir_i == 'H':
+                if r_i == r_j:
+                    return c_i + L_i < c_j or c_j + L_j < c_i
+                elif abs(r_i - r_j) == 1:
+                    return max(c_i, c_j) > min(c_i + L_i - 1, c_j + L_j - 1)
+                else:
+                    return True
+            else:  # dir_i == 'V'
+                if c_i == c_j:
+                    return r_i + L_i < r_j or r_j + L_j < r_i
+                elif abs(c_i - c_j) == 1:
+                    return max(r_i, r_j) > min(r_i + L_i - 1, r_j + L_j - 1)
+                else:
+                    return True
+                    
+        # Caso B: Direcciones diferentes
+        else:
+            # Identificar cuál es la horizontal y cuál la vertical
+            if dir_i == 'H':
+                r_h, c_h, L_h, w_h = r_i, c_i, L_i, w_i
+                r_v, c_v, L_v, w_v = r_j, c_j, L_j, w_j
+            else:
+                r_h, c_h, L_h, w_h = r_j, c_j, L_j, w_j
+                r_v, c_v, L_v, w_v = r_i, c_i, L_i, w_i
+                
+            # ¿Se cruzan?
+            se_cruzan = (r_v <= r_h < r_v + L_v) and (c_h <= c_v < c_h + L_h)
+            
+            if se_cruzan:
+                # Comprobar que la letra en el cruce coincida
+                return w_h[c_v - c_h] == w_v[r_h - r_v]
+            else:
+                # Si no se cruzan, comprobar que no se toquen en los bordes (adyacencia ortogonal)
+                # 1. La palabra vertical no puede tocar los extremos izquierdo/derecho de la horizontal
+                if (r_v <= r_h < r_v + L_v) and (c_v == c_h - 1 or c_v == c_h + L_h):
+                    return False
+                # 2. La palabra horizontal no puede tocar los extremos superior/inferior de la vertical
+                if (c_h <= c_v < c_h + L_h) and (r_h == r_v - 1 or r_h == r_v + L_v):
+                    return False
+                return True
     
 def prueba_crucigrama(verticales, horizontales, consistencia=1):
     
