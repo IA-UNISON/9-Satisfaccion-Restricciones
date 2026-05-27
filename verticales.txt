@@ -1,0 +1,11 @@
+programacion
+algoritmo
+pantalla
+cuaderno
+jirafa
+pajaro
+espejo
+raton
+casa
+mesa
+libro
