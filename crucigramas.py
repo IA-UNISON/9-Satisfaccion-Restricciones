@@ -99,6 +99,63 @@ class Crucigrama(csps.ProblemaCSP):
                 if (c_h <= c_v < c_h + L_h) and (r_h == r_v - 1 or r_h == r_v + L_v):
                     return False
                 return True
+                
+def esta_conectado(asignacion):
+    """
+    Verifica si todas las palabras colocadas en la asignación forman un único
+    componente conectado a través de sus intersecciones.
+    """
+    if not asignacion:
+        return True
+        
+    # Construir el grafo de intersecciones
+    adj = {var: [] for var in asignacion}
+    vars_list = list(asignacion.keys())
+    n_vars = len(vars_list)
+    
+    for i in range(n_vars):
+        var_i = vars_list[i]
+        w_i, dir_i = var_i
+        r_i, c_i = asignacion[var_i]
+        L_i = len(w_i)
+        
+        for j in range(i + 1, n_vars):
+            var_j = vars_list[j]
+            w_j, dir_j = var_j
+            r_j, c_j = asignacion[var_j]
+            L_j = len(w_j)
+            
+            # Solo se cruzan si tienen direcciones opuestas
+            if dir_i != dir_j:
+                if dir_i == 'H':
+                    r_h, c_h, L_h = r_i, c_i, L_i
+                    r_v, c_v, L_v = r_j, c_j, L_j
+                else:
+                    r_h, c_h, L_h = r_j, c_j, L_j
+                    r_v, c_v, L_v = r_i, c_i, L_i
+                    
+                # Verificar si hay cruce
+                if (r_v <= r_h < r_v + L_v) and (c_h <= c_v < c_h + L_h):
+                    adj[var_i].append(var_j)
+                    adj[var_j].append(var_i)
+                    
+    # Hacer BFS/DFS desde la primera variable asignada
+    from collections import deque
+    visitados = set()
+    start_var = vars_list[0]
+    
+    queue = deque([start_var])
+    visitados.add(start_var)
+    
+    while queue:
+        curr = queue.popleft()
+        for vecino in adj[curr]:
+            if vecino not in visitados:
+                visitados.add(vecino)
+                queue.append(vecino)
+                
+    # Si visitamos todas las variables de la asignación, está conectado
+    return len(visitados) == n_vars
     
 def prueba_crucigrama(verticales, horizontales, consistencia=1):
     
