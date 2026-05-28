@@ -1,0 +1,3 @@
+gato
+perro
+arbol
