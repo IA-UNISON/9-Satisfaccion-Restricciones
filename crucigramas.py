@@ -171,6 +171,31 @@ def esta_conectado(asignacion):
     # Si visitamos todas las variables de la asignación, está conectado
     return len(visitados) == n_vars
     
+def imprime_crucigrama(asignacion, n, m):
+    """
+    Dibuja la retícula del crucigrama en consola.
+    """
+    if asignacion is None:
+        print("No hay crucigrama para imprimir.")
+        return
+        
+    # Inicializar la retícula de n x m con puntos '.'
+    grid = [['.' for _ in range(m)] for _ in range(n)]
+    
+    # Rellenar con las palabras de la asignación
+    for (w, direccion), (r, c) in asignacion.items():
+        L = len(w)
+        if direccion == 'H':
+            for i in range(L):
+                grid[r][c + i] = w[i]
+        else:  # 'V'
+            for i in range(L):
+                grid[r + i][c] = w[i]
+                
+    # Imprimir la retícula en consola
+    for r in range(n):
+        print(" ".join(grid[r]))
+        
 def prueba_crucigrama(verticales, horizontales, consistencia=1, n=15, m=15, max_intentos=100):
     import random
     
@@ -228,6 +253,8 @@ def prueba_crucigrama(verticales, horizontales, consistencia=1, n=15, m=15, max_
             print(f"\n¡Solución conectada encontrada en el intento {intentos}!")
             print(f"Tiempo: {t_lapso:.4f} segundos")
             print(f"Backtrackings en el intento exitoso: {problema.backtracking}")
+            print("\nRetícula del Crucigrama:")
+            imprime_crucigrama(asignacion, n, m)
             
             # Restaurar ordena_valores al original antes de salir
             csps.ordena_valores = original_ordena_valores
