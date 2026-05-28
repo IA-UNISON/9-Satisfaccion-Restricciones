@@ -212,15 +212,29 @@ def prueba_crucigrama(verticales, horizontales, consistencia=1, n=15, m=15, max_
     
     # Definir el wrapper para barajar los dominios (domain shuffling)
     def ordena_valores_shuffled(csp, asg, x_i):
-        def conflictos(v_i):
-            return sum(
-                csp.restriccion_binaria(x_i, v_i, x_j, v_j)
-                for x_j in csp.N[x_i] if x_j not in asg
-                for v_j in csp.D[x_j]
-            )
+        def count_intersections(v_i):
+            w_i, dir_i = x_i
+            r_i, c_i = v_i
+            L_i = len(w_i)
+            count = 0
+            for x_j, v_j in asg.items():
+                w_j, dir_j = x_j
+                r_j, c_j = v_j
+                L_j = len(w_j)
+                if dir_i != dir_j:
+                    if dir_i == 'H':
+                        r_h, c_h, L_h = r_i, c_i, L_i
+                        r_v, c_v, L_v = r_j, c_j, L_j
+                    else:
+                        r_h, c_h, L_h = r_j, c_j, L_j
+                        r_v, c_v, L_v = r_i, c_i, L_i
+                    if (r_v <= r_h < r_v + L_v) and (c_h <= c_v < c_h + L_h):
+                        count += 1
+            return count
+
         valores = list(csp.D[x_i])
         random.shuffle(valores)
-        return sorted(valores, key=conflictos, reverse=True)
+        return sorted(valores, key=count_intersections, reverse=True)
         
     # Reemplazar la función en csps por nuestra versión aleatorizada
     csps.ordena_valores = ordena_valores_shuffled
@@ -248,6 +262,11 @@ def prueba_crucigrama(verticales, horizontales, consistencia=1, n=15, m=15, max_
             return None
             
         # Comprobar si la solución está completamente conectada
+        if intentos == 1:
+            print("Ejemplo de asignación del intento 1:")
+            imprime_crucigrama(asignacion, n, m)
+            print("¿Está conectado?", esta_conectado(asignacion))
+            
         if esta_conectado(asignacion):
             t_lapso = time.time() - t0
             print(f"\n¡Solución conectada encontrada en el intento {intentos}!")
@@ -266,7 +285,26 @@ def prueba_crucigrama(verticales, horizontales, consistencia=1, n=15, m=15, max_
     return None
 
 if __name__ == "__main__":
+    # Archivos de palabras sugeridas
+    horizontales_file = 'horizontales.txt'
+    verticales_file = 'verticales.txt'
     
-    prueba_crucigrama(...) # TODO: definir los crucigramas a probar
+    # 1. Prueba con retícula suficiente (10 x 10) y Consistencia 1
+    print("=" * 60)
+    print("Prueba 1: Retícula de 10 x 10 con Consistencia 1")
+    print("=" * 60)
+    prueba_crucigrama(verticales_file, horizontales_file, consistencia=1, n=10, m=10)
+    
+    # 2. Prueba con retícula suficiente (10 x 10) y Consistencia 2
+    print("\n" + "=" * 60)
+    print("Prueba 2: Retícula de 10 x 10 con Consistencia 2")
+    print("=" * 60)
+    prueba_crucigrama(verticales_file, horizontales_file, consistencia=2, n=10, m=10)
+    
+    # 3. Prueba con retícula insuficiente (4 x 4)
+    print("\n" + "=" * 60)
+    print("Prueba 3: Retícula insuficiente de 4 x 4 (Debe avisar al usuario)")
+    print("=" * 60)
+    prueba_crucigrama(verticales_file, horizontales_file, consistencia=1, n=4, m=4)
 
          
