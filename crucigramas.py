@@ -154,9 +154,52 @@ class Crucigrama(csps.ProblemaCSP):
         return True
 
 
+def _imprime_cuadricula(asign, csp):
+    grid = [['.' for _ in range(csp.m)] for _ in range(csp.n)]
+    for var, pos in asign.items():
+        for (r, c), letra in csp._celdas(var, pos).items():
+            grid[r][c] = letra
+    print()
+    for fila in grid:
+        print(' '.join(fila))
+    print()
+
+
 def prueba_crucigrama(horizontales, verticales, n, m, consistencia=1):
-    pass
+    print(f"Crucigrama {n}x{m} | consistencia={consistencia}")
+    print(f"Horizontales: {horizontales}")
+    print(f"Verticales:   {verticales}")
+    print("-" * 45)
+    csp = Crucigrama(horizontales, verticales, n, m)
+    for var in csp.X:
+        if not csp.D[var]:
+            print(f"No hay solucion: dominio vacio para {var[0]}_{var[1]}")
+            return
+    t0 = time.time()
+    asign = csps.asignacion_completa(csp, consistencia=consistencia)
+    t = time.time() - t0
+    if asign is None:
+        print(f"No hay solucion para una cuadricula de {n}x{m}")
+    else:
+        _imprime_cuadricula(asign, csp)
+        for var, pos in sorted(asign.items()):
+            print(f"  {var[0]}_{var[1]}: fila={pos[0]}, col={pos[1]}")
+        print("\nCruces:")
+        for var_h in [v for v in asign if v[0] == 'H']:
+            celdas_h = csp._celdas(var_h, asign[var_h])
+            cruces = []
+            for var_v in [v for v in asign if v[0] == 'V']:
+                celdas_v = csp._celdas(var_v, asign[var_v])
+                inter = set(celdas_h.keys()) & set(celdas_v.keys())
+                if inter:
+                    celda = list(inter)[0]
+                    cruces.append(f"{var_v[1]}('{celdas_h[celda]}')")
+            print(f"  {var_h[1]} cruza con: {', '.join(cruces) if cruces else 'NADIE'}")
+    print(f"\nBacktrackings: {csp.backtracking}")
+    print(f"Tiempo: {t:.3f}s")
 
 
 if __name__ == "__main__":
-    prueba_crucigrama([], [], 5, 5)
+    horizontales = ["GATO", "LUNA"]
+    verticales = ["GALA", "ORAL"]
+    prueba_crucigrama(horizontales, verticales, n=5, m=5)
