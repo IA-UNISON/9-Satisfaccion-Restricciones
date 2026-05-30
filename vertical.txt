@@ -1,5 +1,5 @@
-mariposa
-tortuga
-lobo
-rana
-perro
+casa
+mesa
+masa 
+rama 
+sala 
