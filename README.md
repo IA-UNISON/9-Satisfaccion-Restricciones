@@ -41,4 +41,25 @@ Para hacer el modelo es necesario establecer:
 
 Agrega en este archivo el modelo que vas a usar, y prográmalo en `crucigramas.py`, prueba para un crucigrama con palabras que tu consideres. Recuerda no usar solo palabras cortas o largas, ya que se dificulta la generación del crucigrama.
 
+Modelo CSP:
+
+# Variables:
+    Cada variable corresponde a una palabra que debe colocarse en el crucigrama.
+# Dominio:
+    El dominio de cada palabra son todas las posiciones posibles donde puede ubicarse dentro del crucigrama. Cada posición se representa por fila, columna y horizontal/vertical.
+
+# Restricciones:
+    Las palabras deben caber dentro de los límites del tablero.
+
+    Las palabras horizontales deben cruzar con al menos una palabra vertical.
+
+    Las palabras verticales deben cruzar con al menos una palabra horizontal.
+
+    Dos palabras no pueden ocuapr la misma posición, exceoto cuando comparten una letra en un cruce.
+
+    Dos palabras de la misma orientación (horizontal/vertical) no pueden ocupar las mismas posiciones del tablero.
+
+# Vecinos:
+    Las palabras serán consideradas vecinas, ya que puede generar problema al colocarse en el tablero.
+
 
