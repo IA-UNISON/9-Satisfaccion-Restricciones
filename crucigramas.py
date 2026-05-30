@@ -147,9 +147,7 @@ def prueba_crucigrama(verticales, horizontales, consistencia=1):
     csp = CrucigramaCSP(horizontales, verticales, n, m)
 
     start_time = time.time()
-
     solution = csps.asignacion_completa(csp, consistencia=consistencia)
-
     end_time = time.time()
 
     if solution is not None:
